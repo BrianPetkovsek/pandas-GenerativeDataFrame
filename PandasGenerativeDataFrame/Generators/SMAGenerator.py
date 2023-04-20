@@ -35,7 +35,7 @@ class SMAGenerator(ColumnGenerator):
         # Check if close_values has more than window_size values, remove oldest value if needed and update close_sum
         if len(self.close_values) > self.window_size:
             self.close_sum -= self.close_values.pop(0)
-        else:
+        elif len(self.close_values) < self.window_size:
             return np.NaN
         
         close_sma = self.close_sum/self.window_size
