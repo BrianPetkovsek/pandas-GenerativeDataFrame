@@ -10,6 +10,6 @@ class ExampleRequiresGen(ColumnGenerator):
     def requires(self) -> Dict[str, ColumnGenerator]:
         return {"SMA_10": SMAGenerator(10)}
     
-    def gen(self, index, row pd.Series):
+    def gen(self, index, row: pd.Series):
         return row.SMA_10+1
 
