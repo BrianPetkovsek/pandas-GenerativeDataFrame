@@ -1,5 +1,8 @@
 import pandas as pd
 from typing import Dict
+from typing import Iterable
+from typing import Hashable
+from typing import Tuple
 from .ColumnGenerator import ColumnGenerator
 from typeguard import typechecked
 
@@ -15,11 +18,11 @@ class GenerativeDataFrame:
        self.gCol[columnGenerator] = column_name
        
     
-    def removeIterableColumn(self, column):
+    def removeIterableColumn(self, column: str):
         gen = self.colG.pop(column)
         self.gCol.pop(gen)
     
-    def iterrows(self) -> None:
+    def iterrows(self) -> Iterable[Tuple[Hashable, pd.Series]]:
         for index, row in self.df.iterrows():
             cache = {}
             for col_name, column_generator in self.colG.copy().items():
