@@ -1,0 +1,4 @@
+decorator
+pandas
+typeguard
+numpy
