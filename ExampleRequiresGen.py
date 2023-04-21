@@ -8,7 +8,7 @@ class ExampleRequiresGen(ColumnGenerator):
         pass
 
     def requires(self) -> Dict[str, ColumnGenerator]:
-        return {"SMA_10": SMAGenerator(10)}
+        return {SMAGenerator(10): "SMA_10"}
     
     def gen(self, index, row: pd.Series):
         return row.SMA_10+1
