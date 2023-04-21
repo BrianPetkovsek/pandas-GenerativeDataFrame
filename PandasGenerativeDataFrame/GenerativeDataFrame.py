@@ -25,26 +25,28 @@ class GenerativeDataFrame:
     def iterrows(self) -> Iterable[Tuple[Hashable, pd.Series]]:
         for index, row in self.df.iterrows():
             cache = {}
+            dependency_queue = []
             for col_name, column_generator in self.colG.copy().items():
-                renamed_dict = {}
-                for defined_dependency_name, dependant_gen in column_generator.requires().items():
-                    row_name = self.gCol.get(dependant_gen, None)
-                    if row_name is None:
-                        row_name = defined_dependency_name
-                        self.addIterableColumn(row_name, dependant_gen)
-                    
-                    if row_name not in cache:
-                        cache[row_name] = self.colG[row_name].gen(index, row)
-                        row[row_name] = cache[row_name]
+                dependency_queue.append({column_generator: col_name})
+                while dependency_queue:
+                    dependency = dependency_queue.pop(0)
+                    for dependant_gen, defined_dependency_name in dependency.items():
+                        req = dependant_gen.requires()
+                        if req and (req.keys()-cache):
+                            dependency_queue.append(req)
+                            dependency_queue.append(dependency)
+                            continue
 
-                    if not row_name == defined_dependency_name:
-                        row.rename({row_name: defined_dependency_name}, inplace=True)
-                        renamed_dict[defined_dependency_name] = row_name
+                        for gen, name in req.items():
+                            row.rename({cache[gen]: name}, inplace=True)
+                        
+                        if dependant_gen not in self.gCol:
+                            self.addIterableColumn(defined_dependency_name, dependant_gen)
+                        if dependant_gen not in cache: 
+                            row[defined_dependency_name] = self.colG[defined_dependency_name].gen(index, row)
+                            cache[dependant_gen] = defined_dependency_name
 
-                if col_name not in cache:
-                    cache[col_name] = column_generator.gen(index, row) # dependencies has been gened gen col
-                    row[col_name] = cache[col_name]
-
-                row.rename(renamed_dict, inplace=True) #reverse renaming 
+            for gen, name in self.gCol.items():
+                row.rename({cache[gen]: name}, inplace=True)
             yield index, row
 
